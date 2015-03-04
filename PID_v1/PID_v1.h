@@ -1,6 +1,6 @@
 #ifndef PID_v1_h
 #define PID_v1_h
-#define LIBRARY_VERSION	1.0.0
+#define LIBRARY_VERSION	1.0.2
 
 class PID
 {
@@ -50,6 +50,8 @@ class PID
 	double GetKd();						  // where it's important to know what is actually 
 	int GetMode();						  //  inside the PID.
 	int GetDirection();					  //
+	double GetITerm();					  //
+	double GetLastInput();					  //
 
   private:
 	void Initialize();

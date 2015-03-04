@@ -1,6 +1,7 @@
 /**********************************************************************************************
- * Arduino PID Library - Version 1.0.1
+ * Arduino PID Library - Version 1.0.2
  * by Brett Beauregard <br3ttb@gmail.com> brettbeauregard.com
+ * modified by Mike Broome - http://github.com/mikebroome/
  *
  * This Library is licensed under a GPLv3 License
  **********************************************************************************************/
@@ -43,6 +44,11 @@ PID::PID(double* Input, double* Output, double* Setpoint,
  *   every time "void loop()" executes.  the function will decide for itself whether a new
  *   pid Output needs to be computed.  returns true when the output is computed,
  *   false when nothing has been done.
+ *
+ *   Alternatively, if SampleTime is set to 0, Compute() will run every time it is
+ *   called.  In this case, it would not be time based, and the user should not call
+ *   it every time through loop(), but rather only based on some event (e.g. timer,
+ *   button press, external input).
  **********************************************************************************/ 
 bool PID::Compute()
 {
@@ -87,6 +93,10 @@ void PID::SetTunings(double Kp, double Ki, double Kd)
    dispKp = Kp; dispKi = Ki; dispKd = Kd;
    
    double SampleTimeInSec = ((double)SampleTime)/1000;  
+   if (SampleTime == 0) {
+      SampleTimeInSec = 1;
+   }
+
    kp = Kp;
    ki = Ki * SampleTimeInSec;
    kd = Kd / SampleTimeInSec;
@@ -101,13 +111,19 @@ void PID::SetTunings(double Kp, double Ki, double Kd)
   
 /* SetSampleTime(...) *********************************************************
  * sets the period, in Milliseconds, at which the calculation is performed	
+ *
+ * Allow SampleTime to be set to 0 to force Compute() to run every time it's
+ * called.
  ******************************************************************************/
 void PID::SetSampleTime(int NewSampleTime)
 {
-   if (NewSampleTime > 0)
+   if (NewSampleTime >= 0)
    {
-      double ratio  = (double)NewSampleTime
-                      / (double)SampleTime;
+      double ratio = 1;
+      if ((SampleTime != 0) && (NewSampleTime != 0)) {
+         ratio  = (double)NewSampleTime
+                  / (double)SampleTime;
+      }
       ki *= ratio;
       kd /= ratio;
       SampleTime = (unsigned long)NewSampleTime;
@@ -192,4 +208,5 @@ double PID::GetKi(){ return  dispKi;}
 double PID::GetKd(){ return  dispKd;}
 int PID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::GetDirection(){ return controllerDirection;}
-
+double PID::GetITerm(){ return  ITerm;}
+double PID::GetLastInput(){ return  lastInput;}
